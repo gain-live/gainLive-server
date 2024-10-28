@@ -1,0 +1,16 @@
+{
+  "name": "gainlive-server",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "localtunnel": "^2.0.2",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.0"
+  }
+}
