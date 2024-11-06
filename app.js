@@ -1,26 +1,5 @@
-// const express = require('express')
-// const dotenv = require('dotenv');
 
-
-
-// // app.use((req,res,next)=>{
-// //     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
-// //     error.status = 404;
-// //     next(error);
-// // });
-
-// const app = express();
-// app.set('port',process.env.PORT || 8000);
-
-// app.use((err,req,res,next)=>{
-//     res.locals.message = err.message;
-//     res.locals.error = process.env.NODE_ENV !== 'production' ? err : {};
-//     res.status(err.status || 500);
-//     res.render('error');
-// });
-
-
-// const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const http = require('http');
 const dotenv = require('dotenv');
@@ -28,15 +7,15 @@ const { Server } = require('socket.io');
 
 dotenv.config();
 
-const app = express()
+const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-app.set('port',process.env.PORT || 3000);
 
-const matchQueue = []
-const users = new Map()
-const rooms = new Map()
-let roomId = 0
+const matchQueue = [];
+const users = new Map();
+const rooms = new Map();
+//let roomUuid = 0;
+// const roomUuid = uuidv4();
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
@@ -44,17 +23,18 @@ io.on('connection', (socket) => {
 
   socket.on('match', (msg) => {
     if(matchQueue.find(element => element == socket)) {
-      socket.emit("tlqkf")
+        socket.emit("duplicateMatch");
     }else if(matchQueue.length != 0) {
-      roomId = roomId++  // todo 
-      const user2 = matchQueue.shift()  // todo rename
-      user2.emit('matched')
-      socket.emit('matched')
-      user2.join(roomId)
-      socket.join(roomId)
-      users[user2] = roomId
-      users[socket] = roomId
-      rooms[roomId] = [user2, socket]
+        //roomUuid = roomUuid++  // todo 
+        const roomUuid = uuidv4();
+        const user2 = matchQueue.shift()  // todo rename
+        user2.join(roomUuid)
+        socket.join(roomUuid)
+        io.to(roomUuid).emit('matched')
+        users[user2] = roomUuid
+        users[socket] = roomUuid
+        rooms[roomUuid] = [user2, socket]
+
     } else {
       socket.emit('ok')
       matchQueue.push(socket)
@@ -62,26 +42,26 @@ io.on('connection', (socket) => {
   })
   // 메시지를 받았을 때
   socket.on('message', (msg) => {
-    const roomId = users[socket]
-    const user2s = rooms[roomId].forEach(element => {
+    const roomUuid = users[socket]
+    const user2s = rooms[roomUuid].forEach(element => {
       if(element != socket) {
         element.emit("message", msg)
       }
     });
     // 메시지를 모든 클라이언트에 전송
-    // io.to(roomId).emit('message', msg);
+    // io.to(roomUuid).emit('message', msg);
   });
 
   // 연결이 끊어졌을 때
   socket.on('disconnect', () => {
-    const roomId = users[socket]
-    io.to(roomId).emit('disconnected')
-    rooms[roomId].forEach(element => {
+    const roomUuid = users[socket]
+    io.to(roomUuid).emit('disconnected')
+    rooms[roomUuid].forEach(element => {
       users.delete(element)
-      element.leave(roomId)
+      element.leave(roomUuid)
       element.disconnect()
     });
-    rooms.delete(roomId)
+    rooms.delete(roomUuid)
     console.log('User disconnected:', socket.id);
   });
 });
