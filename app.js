@@ -1,9 +1,9 @@
-
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const http = require('http');
 const dotenv = require('dotenv');
 const { Server } = require('socket.io');
+var cron = require('node-cron');
 
 dotenv.config();
 
@@ -15,8 +15,7 @@ const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.set('port', process.env.PORT || 9001); //  포트 번호 수정 여기서 하세요ㅛ
-
+app.set('port', process.env.PORT || 9024);
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
@@ -34,17 +33,21 @@ io.on('connection', (socket) => {
         io.to(roomUuid).emit('matched')
         users[user2] = roomUuid
         users[socket] = roomUuid
-        rooms[roomUuid] = [user2, socket] // 시간 넣어줘야 함
-
+        
+        rooms[roomUuid] = {
+          endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
+          users: [user2, socket]
+        }
     } else {
       socket.emit('ok')
       matchQueue.push(socket)
     }
-  })
+  });
+
   // 메시지를 받았을 때
   socket.on('message', (msg) => {
     const roomUuid = users[socket]
-    const user2s = rooms[roomUuid].forEach(element => {
+    const user2s = rooms[roomUuid]["users"].forEach(element => {
       if(element != socket) {
         element.emit("message", msg)
       }
@@ -57,7 +60,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const roomUuid = users[socket]
     io.to(roomUuid).emit('disconnected')
-    rooms[roomUuid].forEach(element => {
+    rooms[roomUuid]["users"].forEach(element => {
       users.delete(element)
       element.leave(roomUuid)
       element.disconnect()
@@ -66,6 +69,27 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
   });
 });
+
+setInterval(() => {
+    rooms.forEach((room, key) => {
+
+        console.log("date.now" , Date.now());
+        console.log("room.get", room.endTime.getTime());
+        
+        if (Date.now() >= room.endTime.getTime()){
+            io.to(key).emit('timeover');
+            
+            room["users"].forEach(element => {
+                users.delete(element)
+                element.leave(key)
+                element.disconnect()
+              });
+
+            rooms.delete(key)
+            console.log('time over:', socket.id);
+        }
+    });
+}, 100);
 
 server.listen(app.get('port'), () => {
   console.log(`Server is running on http://localhost:${app.get('port')}`);
