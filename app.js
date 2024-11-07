@@ -15,7 +15,7 @@ const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.set('port', process.env.PORT || 9024);
+app.set('port', process.env.PORT || 9016);
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
@@ -34,10 +34,11 @@ io.on('connection', (socket) => {
         users[user2] = roomUuid
         users[socket] = roomUuid
         
-        rooms[roomUuid] = {
-          endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
-          users: [user2, socket]
-        }
+        rooms.set(roomUuid, {
+            endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
+            users: [user2, socket]
+        });
+
     } else {
       socket.emit('ok')
       matchQueue.push(socket)
@@ -60,7 +61,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const roomUuid = users[socket]
     io.to(roomUuid).emit('disconnected')
-    rooms[roomUuid]["users"].forEach(element => {
+    rooms.get(roomUuid)["users"].forEach(element => {
       users.delete(element)
       element.leave(roomUuid)
       element.disconnect()
@@ -73,9 +74,6 @@ io.on('connection', (socket) => {
 setInterval(() => {
     rooms.forEach((room, key) => {
 
-        console.log("date.now" , Date.now());
-        console.log("room.get", room.endTime.getTime());
-        
         if (Date.now() >= room.endTime.getTime()){
             io.to(key).emit('timeover');
             
@@ -83,10 +81,10 @@ setInterval(() => {
                 users.delete(element)
                 element.leave(key)
                 element.disconnect()
-              });
+            });
 
             rooms.delete(key)
-            console.log('time over:', socket.id);
+            console.log('time over:', key);
         }
     });
 }, 100);
