@@ -15,7 +15,7 @@ const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.set('port', process.env.PORT || 8000);
+app.set('port', process.env.PORT || 9001); //  포트 번호 수정 여기서 하세요ㅛ
 
 
 // 클라이언트가 연결되었을 때
@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
         io.to(roomUuid).emit('matched')
         users[user2] = roomUuid
         users[socket] = roomUuid
-        rooms[roomUuid] = [user2, socket]
+        rooms[roomUuid] = [user2, socket] // 시간 넣어줘야 함
 
     } else {
       socket.emit('ok')
