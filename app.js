@@ -14,8 +14,9 @@ const io = new Server(server);
 const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
-//let roomUuid = 0;
-// const roomUuid = uuidv4();
+
+app.set('port', process.env.PORT || 8000);
+
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
@@ -66,6 +67,6 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+server.listen(app.get('port'), () => {
+  console.log(`Server is running on http://localhost:${app.get('port')}`);
 });
