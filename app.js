@@ -15,7 +15,7 @@ const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.set('port', process.env.PORT || 9016);
+app.set('port', process.env.PORT || 9064);
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
