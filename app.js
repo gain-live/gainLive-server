@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
   // 메시지를 받았을 때
   socket.on('message', (msg) => {
     const roomUuid = users[socket]
-    const user2s = rooms[roomUuid]["users"].forEach(element => {
+    const user2s = rooms.get(roomUuid)["users"].forEach(element => {
       if(element != socket) {
         element.emit("message", msg)
       }
