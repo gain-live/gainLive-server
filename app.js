@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
         users[socket] = roomUuid
         
         rooms.set(roomUuid, {
-            endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
+            endTime: new Date(Date.now() + 45 * 1000),  //  끝나는 시간
             users: [user2, socket]
         });
 
