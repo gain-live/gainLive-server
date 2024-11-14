@@ -6,14 +6,9 @@ const { Server } = require('socket.io');
 var cron = require('node-cron');
 const passport = require('passport')
 
-
 dotenv.config();
-
-const authRouter = require('./routes/auth');
-const passportConfig = require('./passport');
-
 const app = express();
-passportConfig(); // 패스포트 설정
+
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -21,10 +16,28 @@ const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.use('/auth', authRouter);
+// router
+const authRouter = require('./routes/auth');
+const passportConfig = require('./passport');
+const { sequelize } = require('./models');
 
+
+passportConfig();
 app.set('port', process.env.PORT || 9060 );
 
+sequelize.sync({ force: true })
+  .then(() => {
+    console.log('데이터베이스 연결 성공');
+  })
+  .catch((err) => {
+    console.error(err);
+});
+
+app.use('/auth', authRouter);
+app.use(passport.initialize());
+
+
+// 채팅
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
