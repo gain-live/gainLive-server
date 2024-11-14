@@ -10,7 +10,12 @@ dotenv.config();
 const app = express();
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 const matchQueue = [];
 const users = new Map();
@@ -56,7 +61,7 @@ io.on('connection', (socket) => {
         users[socket] = roomUuid
         
         rooms.set(roomUuid, {
-            endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
+            endTime: new Date(Date.now() + 45 * 1000),  //  끝나는 시간
             users: [user2, socket]
         });
 
@@ -69,7 +74,7 @@ io.on('connection', (socket) => {
   // 메시지를 받았을 때
   socket.on('message', (msg) => {
     const roomUuid = users[socket]
-    const user2s = rooms[roomUuid]["users"].forEach(element => {
+    const user2s = rooms.get(roomUuid)["users"].forEach(element => {
       if(element != socket) {
         element.emit("message", msg)
       }
