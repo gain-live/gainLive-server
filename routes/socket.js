@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require('uuid');
+
 // 채팅
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
