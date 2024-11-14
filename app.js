@@ -4,23 +4,26 @@ const http = require('http');
 const dotenv = require('dotenv');
 const { Server } = require('socket.io');
 var cron = require('node-cron');
+const passport = require('passport')
+
 
 dotenv.config();
 
+const authRouter = require('./routes/auth');
+const passportConfig = require('./passport');
+
 const app = express();
+passportConfig(); // 패스포트 설정
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+const io = new Server(server);
 
 const matchQueue = [];
 const users = new Map();
 const rooms = new Map();
 
-app.set('port', process.env.PORT || 9064);
+app.use('/auth', authRouter);
+
+app.set('port', process.env.PORT || 9060 );
 
 // 클라이언트가 연결되었을 때
 io.on('connection', (socket) => {
@@ -40,7 +43,7 @@ io.on('connection', (socket) => {
         users[socket] = roomUuid
         
         rooms.set(roomUuid, {
-            endTime: new Date(Date.now() + 45 * 1000),  //  끝나는 시간
+            endTime: new Date(Date.now() + 10 * 1000),  //  끝나는 시간
             users: [user2, socket]
         });
 
@@ -53,7 +56,7 @@ io.on('connection', (socket) => {
   // 메시지를 받았을 때
   socket.on('message', (msg) => {
     const roomUuid = users[socket]
-    const user2s = rooms.get(roomUuid)["users"].forEach(element => {
+    const user2s = rooms[roomUuid]["users"].forEach(element => {
       if(element != socket) {
         element.emit("message", msg)
       }
