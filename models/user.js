@@ -4,7 +4,7 @@ class User extends Sequelize.Model {
   static initiate(sequelize) {
     User.init({
       provider: {
-        type: Sequelize.ENUM('local', 'kakao'),
+        type: Sequelize.STRING(),
         allowNull: false,
         defaultValue: 'local',
       },

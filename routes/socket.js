@@ -1,8 +1,12 @@
 const { v4: uuidv4 } = require('uuid');
 
+const matchQueue = [];
+const users = new Map();
+const rooms = new Map();
 // 채팅
 // 클라이언트가 연결되었을 때
-io.on('connection', (socket) => {
+const handleSocket = (io) => {
+  io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
   
     socket.on('match', (msg) => {
@@ -71,5 +75,6 @@ io.on('connection', (socket) => {
               console.log('time over:', key);
           }
       });
-}, 100);
-  
+  }, 100);
+}
+module.exports = handleSocket
